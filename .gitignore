@@ -1,0 +1,14 @@
+ __pycache__/
+ mylib/__pycache__/
+ bin/
+ include/
+ lib/
+ data/
+
+.DS_Stone
+ *.json
+ *.cfg
+ *.txt
+ *.log
+
+ !requirement.txt
