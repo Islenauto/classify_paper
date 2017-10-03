@@ -12,7 +12,7 @@ include/
 lib/
 data/
 
-DS_Stone
+.DS_Stone
 *.json
 *.cfg
 *.txt
