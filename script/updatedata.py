@@ -10,9 +10,9 @@ import extractdata as extdt
 
 def preprocess(content_dic,tag_stopwd):
     # ノイズ除去
-    #texts = [dic["sentence"] for dic in content_dic]
     texts = [re.sub(r"<br>"," ",dic["sentence"]) for dic in content_dic]
     texts = [re.sub("(\(|\)|(\\r|\\n){1,2}|,|%|CNN)","",text) for text in texts]
+    texts = [re.sub("([0-9].*?GMT)|(Share\sthis\swith.*?Copy\sthis\slink)","",text) for text in texts]
         
     # POSによるstopword
     texts_stopwd = stopword(texts,tag_stopwd.split(','))
@@ -30,15 +30,12 @@ def stopword(texts,tag_stopwd):
     texts_stopwd = []
     for text in texts:
         results = [result.split('\t') for result in tagger.TagText(text)]
-        for result in results:
-            if (len(result) < 3):
-                print (result)
-                print (text+'\n')
         text_stopwd = [result[2].lower() for result in results if len(result) == 3 and result[1] in tag_stopwd]
         texts_stopwd.append(text_stopwd)
     return texts_stopwd
 
 
+# dbから抽出したデータをcsvへ出力
 def export_data(content_dic):
     # ヘッダ
     header = content_dic[0].keys()
@@ -57,7 +54,7 @@ def main():
 
     total_dic = extdt.ExtractData()
     content_dic = total_dic.get_select_contents(name_news)
-    content_dic = preprocess(content_dic,"NN,NNS,NP,NPS")
+    content_dic = preprocess(content_dic,"NP,NPS")
     export_data(content_dic)
 
 if __name__ == "__main__":
