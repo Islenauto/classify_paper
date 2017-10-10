@@ -11,21 +11,23 @@ class Lda:
     def __init__(self,num_topics):
         content_dic = self.import_data()
         texts = [dic['sentence'] for dic in content_dic]
+
                                                         
         # モデル作成用のdictionary,corpus作成
         dictionary = corpora.Dictionary(texts)
         dictionary.save(root_path+"/data/bbc.dict")
         
         corpus = [dictionary.doc2bow(text) for text in texts]
-        corpora.MmCorpus.serialize(root_path+"/data/bcc.mm",corpus)
+        tfidf = models.TfidfModel(corpus)
+        corpus_tfidf = tfidf[corpus]
+        
+        #corpora.MmCorpus.serialize(root_path+"/data/bcc.mm",corpus)
         #corpus = corpora.MmCorpus('./data/bcc.mm')
 
         # gensimのldaモデル作成
-        lda = models.ldamodel.LdaModel(corpus=corpus, num_topics=num_topics,id2word=dictionary)
+        lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, num_topics=num_topics,id2word=dictionary)
         for topic in lda.show_topics(-1):
             print (topic)
-        for topic_per_doc in lda[corpus]:
-            print (topic_per_doc)
 
 
     # csvから辞書データを読み込む
