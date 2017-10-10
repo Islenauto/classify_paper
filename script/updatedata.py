@@ -1,5 +1,6 @@
 # -*- encoding: UTF-8 -*-
 import treetaggerwrapper as ttw
+import nltk
 import csv
 import sys,os
 import re
@@ -13,7 +14,10 @@ def preprocess(content_dic,tag_stopwd):
     texts = [re.sub(r"<br>"," ",dic["sentence"]) for dic in content_dic]
     texts = [re.sub("(\(|\)|(\\r|\\n){1,2}|,|%|CNN)","",text) for text in texts]
     texts = [re.sub("([0-9].*?GMT)|(Share\sthis\swith.*?Copy\sthis\slink)","",text) for text in texts]
-        
+
+    # tf-idfによる重み付け
+    texts = tf_idf(texts)
+
     # POSによるstopword
     texts_stopwd = stopword(texts,tag_stopwd.split(','))
     for i in range(len(texts_stopwd)):
@@ -27,7 +31,7 @@ def stopword(texts,tag_stopwd):
     tagdir = os.getenv('TREETAGGER_ROOT')
     tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
     
-    texts_stopwd = []
+    texts_stopwd = []   
     for text in texts:
         results = [result.split('\t') for result in tagger.TagText(text)]
         text_stopwd = [result[2].lower() for result in results if len(result) == 3 and result[1] in tag_stopwd]
