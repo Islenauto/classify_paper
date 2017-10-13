@@ -6,7 +6,7 @@ import collections
 #使用するdbのプロパティ
 hostname = "localhost"
 db = "paper_rails_development"
-name = "Daiki"
+name = "s14t287"
 
 class ExtractData:
     def __init__(self):
