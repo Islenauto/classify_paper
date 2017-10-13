@@ -8,8 +8,8 @@ import csv
 root_path = os.path.dirname(os.getcwd())
 
 class Lda:
-    def __init__(self,num_topics):
-        content_dic = self.import_data()
+    def __init__(self,num_topics,name_news):
+        content_dic = self.import_data(name_news)
         texts = [dic['sentence'] for dic in content_dic]
 
                                                         
@@ -25,17 +25,14 @@ class Lda:
         #corpus = corpora.MmCorpus('./data/bcc.mm')
 
         # gensimのldaモデル作成
-        lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, num_topics=num_topics,id2word=dictionary)
-        for topic in lda.show_topics(-1):
-            print (topic)
-
+        self.lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, num_topics=num_topics,id2word=dictionary)
 
     # csvから辞書データを読み込む
-    def import_data(self):
-        with open(root_path+"/data/contents.csv","r") as f:
+    def import_data(self,name_news):
+        with open(root_path+"/data/contents_" + name_news + ".csv","r") as f:
             reader = csv.DictReader(f)
             content_dic = [row for row in reader]
             for dic in content_dic:
                 target = dic['sentence']
-                dic['sentence'] = re.sub("'|\[|\]","",dic['sentence']).split(',')
+                dic['sentence'] = re.sub("'|\[|\]|\s]","",target).split(",")
             return content_dic
