@@ -15,8 +15,6 @@ def preprocess(content_dic,tag_stopwd):
     texts = [re.sub("(\(|\)|(\\r|\\n){1,2}|,|%|CNN)","",text) for text in texts]
     texts = [re.sub("([0-9].*?GMT)|(Share\sthis\swith.*?Copy\sthis\slink)","",text) for text in texts]
 
-    # tf-idfによる重み付け
-    texts = tf_idf(texts)
 
     # POSによるstopword
     texts_stopwd = stopword(texts,tag_stopwd.split(','))
@@ -40,11 +38,14 @@ def stopword(texts,tag_stopwd):
 
 
 # dbから抽出したデータをcsvへ出力
-def export_data(content_dic):
-    # ヘッダ
+def export_data(content_dic,name_news):
+    # csvのヘッダ
     header = content_dic[0].keys()
+    # 出力ファイル名
+    name_file = "contents_" + name_news
 
-    with open(root_path+"/data/contents.csv","w") as f:
+
+    with open(root_path+"/data/" + name_file + ".csv","w") as f:
         writer = csv.DictWriter(f,header)
         header_row = {k:k for k in header}
         writer.writerow(header_row)
@@ -59,7 +60,7 @@ def main():
     total_dic = extdt.ExtractData()
     content_dic = total_dic.get_select_contents(name_news)
     content_dic = preprocess(content_dic,"NP,NPS")
-    export_data(content_dic)
+    export_data(content_dic,name_news)
 
 if __name__ == "__main__":
     main()
