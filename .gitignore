@@ -10,6 +10,7 @@ mylib/__pycache__/
 bin/
 include/
 lib/
+lib64/
 data/
 
 .DS_Store
