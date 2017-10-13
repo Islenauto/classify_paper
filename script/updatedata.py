@@ -15,9 +15,6 @@ def preprocess(content_dic,tag_stopwd):
     texts = [re.sub("(\(|\)|(\\r|\\n){1,2}|,|%|CNN)","",text) for text in texts]
     texts = [re.sub("([0-9].*?GMT)|(Share\sthis\swith.*?Copy\sthis\slink)","",text) for text in texts]
 
-    # tf-idfによる重み付け
-    texts = tf_idf(texts)
-
     # POSによるstopword
     texts_stopwd = stopword(texts,tag_stopwd.split(','))
     for i in range(len(texts_stopwd)):
