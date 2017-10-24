@@ -14,10 +14,8 @@ class ExtractData:
         sql_arti = "SELECT * FROM articles;"
         sql_arti_info = "SELECT * FROM article_infos;"
         sql_news = "SELECT * FROM newspapers;"
-        sql_arti_cont = "SELECT * FROM articles RIGHT OUTER JOIN contents on articles.id = contents.id"
+        sql_arti_cont = "SELECT * FROM articles RIGHT OUTER JOIN contents on articles.id = contents.article_id"
         
-        #self.content_dic = self.get_dic_result(sql_cont)
-        #self.ariticle_dic = self.get_dic_result(sql_arti)
         self.article_info_dic = self.get_dic_result(sql_arti_info)
         self.newspaper_dic = self.get_dic_result(sql_news)
         # articles,contentsの結合テーブルを辞書化
@@ -56,8 +54,9 @@ class ExtractData:
             cont_tech = list(filter(lambda dic:dic['category'] == 'technology',self.arti_cont_dic))[0:num_least_category+1]
             cont_science = list(filter(lambda dic:dic['category'] == 'science',self.arti_cont_dic))[0:num_least_category+1]
             cont_business = list(filter(lambda dic:dic['category'] == 'business',self.arti_cont_dic))[0:num_least_category+1]
-            
+
             select_contents = cont_world + cont_entame + cont_sports + cont_tech + cont_science + cont_business
+            select_contents = list(filter(lambda dic:dic['newspaper_id'] == news_id,select_contents))
         return select_contents
     
 
