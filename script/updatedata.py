@@ -1,18 +1,16 @@
 # -*- encoding: UTF-8 -*-
 import treetaggerwrapper as ttw
 import nltk
-import csv
-import sys,os
-import re
+import re,sys,os
 
 root_path = os.path.dirname(os.getcwd())
 sys.path.append(root_path+"/mylib/")
-import extractdata as extdt
+import datacontroler as dtct
 
 def preprocess(content_dic,tag_stopwd):
     # ノイズ除去
     texts = [re.sub(r"<br>"," ",dic["sentence"]) for dic in content_dic]
-    texts = [re.sub("(\(|\)|(\\r|\\n){1,2}|,|%)","",text) for text in texts]
+    texts = [re.sub("(\(|\)|(\\r|\\n){1,2}|,|%|These are external links and will open in a new window)","",text) for text in texts]
     texts = [re.sub("([0-9].*?GMT)|(Share\sthis\swith.*?Copy\sthis\slink)","",text) for text in texts]
 
 
@@ -42,31 +40,15 @@ def stopword(texts,tag_stopwd):
     return texts_stopwd
 
 
-# dbから抽出したデータをcsvへ出力
-def export_data(content_dic,name_news):
-    # csvのヘッダ
-    header = content_dic[0].keys()
-    # 出力ファイル名
-    name_file = "contents_" + name_news
-
-
-    with open(root_path+"/data/" + name_file + ".csv","w") as f:
-        writer = csv.DictWriter(f,header)
-        header_row = {k:k for k in header}
-        writer.writerow(header_row)
-
-        for row in content_dic:
-            writer.writerow(row)
-
-
 def main():
     name_news = sys.argv[1]
     category = sys.argv[2]
+    
 
-    total_dic = extdt.ExtractData()
-    content_dic = total_dic.get_select_contents(name_news,category)
+    model_dtct = dtct.DataControler()
+    content_dic = model_dtct.get_select_contents(name_news,category)
     content_dic = preprocess(content_dic,"NN,NNS,NP,NPS")
-    export_data(content_dic,name_news)
-
+    model_dtct.export_data(content_dic,name_news,category,mode="data")
+    
 if __name__ == "__main__":
     main()
