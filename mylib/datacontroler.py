@@ -13,33 +13,12 @@ db = "paper_rails_development"
 name = "Daiki"
 
 class DataControler:
-    def __init__(self):
-        sql_cont = "SELECT * FROM contents;"
-        sql_arti = "SELECT * FROM articles;"
-        sql_arti_info = "SELECT * FROM article_infos;"
-        sql_news = "SELECT * FROM newspapers;"
-        sql_arti_cont = "SELECT * FROM articles RIGHT OUTER JOIN contents on articles.id = contents.article_id"
-        
-        self.article_info_dic = self.get_dic_result(sql_arti_info)
-        self.newspaper_dic = self.get_dic_result(sql_news)
-        # articles,contentsの結合テーブルを辞書化
-        self.arti_cont_dic = self.get_dic_result(sql_arti_cont)
-
-    def get_dic_result(self,sql):
-        connector = psycopg2.connect(host=hostname, port=5432, dbname=db, user=name)
-        cur = connector.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute(sql)
-        res = cur.fetchall()
-        dict_result = []
-        for row in res:
-            dict_result.append(dict(row))
-        return dict_result
-
-
     def get_select_contents(self,newsname,category):
-        # 引数で指定した新聞社の対応id
+        # db内のデータを辞書化
+        self.db2dic()
+        # 引数で指定した新聞社の対応idを取得
         news_id = self.get_news_id(newsname)
-        
+
         # 指定社のカテゴリ毎の記事数の確認部分
         num_category_dic = collections.defaultdict(int)
         for dic in self.arti_cont_dic: 
@@ -61,8 +40,32 @@ class DataControler:
 
             select_contents = cont_world + cont_entame + cont_sports + cont_tech + cont_science + cont_business
             select_contents = list(filter(lambda dic:dic['newspaper_id'] == news_id,select_contents))
-        return select_contents
-    
+        return select_contents  
+
+
+    def db2dic(self):
+        sql_cont = "SELECT * FROM contents;"
+        sql_arti = "SELECT * FROM articles;"
+        sql_arti_info = "SELECT * FROM article_infos;"
+        sql_news = "SELECT * FROM newspapers;"
+        sql_arti_cont = "SELECT * FROM articles RIGHT OUTER JOIN contents on articles.id = contents.article_id"
+        
+        self.article_info_dic = self.exe_sql(sql_arti_info)
+        self.newspaper_dic = self.exe_sql(sql_news)
+        # articles,contentsの結合テーブルを辞書化
+        self.arti_cont_dic = self.exe_sql(sql_arti_cont)
+
+
+    def exe_sql(self,sql):
+        connector = psycopg2.connect(host=hostname, port=5432, dbname=db, user=name)
+        cur = connector.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(sql)
+        res = cur.fetchall()
+        dict_result = []
+        for row in res:
+            dict_result.append(dict(row))
+        return dict_result
+
 
     def get_news_id(self,name):
         for dic in self.newspaper_dic:
@@ -103,6 +106,4 @@ class DataControler:
                 header_row = ["topic_num"]
                 writer.writerow(header_row) 
                 for row in data:
-                    row = [row[0]] + row[1].split("+")
-                    #row = str(row[0]) + re.sub("+", ",", row[1])
                     writer.writerow(row)
