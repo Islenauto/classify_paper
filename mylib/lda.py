@@ -8,12 +8,9 @@ import datacontroler as dtct
 root_path = os.path.dirname(os.getcwd())
 
 class Lda:
-    def __init__(self,num_topics,name_news,category):
-        self.name_news = name_news
-        self.category = category
+    def __init__(self,articles):
 
-        content_dic = dtct.DataControler().import_data(self.name_news,self.category)
-        texts = [dic['sentence'] for dic in content_dic]
+        texts = [article['sentence'] for article in articles]
 
                                                         
         # モデル作成用のdictionary,corpus作成
@@ -25,5 +22,8 @@ class Lda:
         corpus_tfidf = tfidf[corpus]
         
         # gensimのldaモデル作成
-        self.lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, num_topics=num_topics,id2word=dictionary)
-        self.hdp = models.hdpmodel.HdpModel(corpus=corpus_tfidf,id2word=dictionary)
+        self.lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, num_topics=6,id2word=dictionary)
+        self.hdp = models.hdpmodel.HdpModel(corpus=corpus_tfidf,id2word=dictionary,T=150)
+
+        # 各doc内のトピック分布をリストに保存
+        self.topics_indoc = [dict(self.hdp[c]) for c in corpus_tfidf]
