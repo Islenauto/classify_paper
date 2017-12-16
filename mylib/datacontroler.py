@@ -80,7 +80,7 @@ class DataControler:
             content_dic = [row for row in reader]
             for dic in content_dic:
                 target = dic['sentence']
-                dic['sentence'] = re.sub("'|\[|\]|\s]","",target).split(",")
+                dic['sentence'] = list(filter(lambda word: word != '' ,re.sub("[^a-zA-Z0-9,]+","",target).split(",")))
             return content_dic
 
 
