@@ -73,6 +73,9 @@ class DataControler:
                 return dic['id']
 
 
+    def flatten_list(self,nasted_lis):
+        return ([item for inner_lis in nasted_lis for item in inner_lis])
+
     # csvから辞書データを読み込む
     def import_data(self,name_news,category):
         with open(root_path+"/data/contents_" + name_news + "_" + category + ".csv","r") as f:
