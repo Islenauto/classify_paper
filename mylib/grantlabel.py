@@ -28,7 +28,6 @@ class GrantLabel:
             for word in label:
                 score += 1
 
-
         return score
     
     
