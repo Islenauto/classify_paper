@@ -22,8 +22,7 @@ class GrantLabel:
         # zero-order relevance
         if method == 0:
             for word in label:
-                if (word in W_theta.keys()):
-                    score += numpy.log(W_theta[word])
+                score += numpy.log(W_theta[word])
 
         # first-order relevance
         elif method == 1:
@@ -42,6 +41,4 @@ class GrantLabel:
 
     def show_labels(self,id_topic,num_labels=10):
         df = pandas.Series(self.labels_scored[id_topic]).sort_values(ascending=False)
-        print (df[:num_labels])
-
-
+        return (df[:num_labels])
