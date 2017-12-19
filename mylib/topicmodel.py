@@ -15,9 +15,12 @@ class TopicModel:
                                                         
         # モデル作成用のdictionary,corpus作成
         dictionary = corpora.Dictionary(self.data_parsed)
-        dictionary.save(root_path+"/data/bbc.dict")
-        
+        #dictionary.save(root_path+"/data/bbc.dict")
         corpus = [dictionary.doc2bow(text) for text in self.data_parsed]
+        #corpora.MmCorpus.serialize(root_path + "/data/corpus.mm",corpus)
+        
+        #dictionary = corpora.Dictionary.load(root_path+"/data/bbc.dict")
+        #corpus = corpora.MmCorpus(root_path + "/data/corpus.mm")
         tfidf = models.TfidfModel(corpus)
         corpus_tfidf = tfidf[corpus]
         
@@ -28,5 +31,5 @@ class TopicModel:
         # 各doc内のトピック分布リスト
         self.topics_indoc = [dict(self.hdp[c]) for c in corpus_tfidf]
         # トピック毎の各単語の生起確率リスト
-        temp = [topic for topic in self.hdp.show_topics(num_topics=-1,num_words=-1,formatted=False)]
+        temp = [topic for topic in self.hdp.show_topics(num_topics=-1,num_words=len(dictionary),formatted=False)]
         self.W_Theta = [{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp]
