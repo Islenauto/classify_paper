@@ -1,5 +1,5 @@
 # -*- encoding: UTF-8 -*-
-import nltk
+import re,nltk
 from gensim import corpora,models,similarities
 from mylib.datacontroler import DataControler
 from mylib.topicmodel import TopicModel
@@ -8,6 +8,7 @@ class Ngram:
     def __init__(self,texts,n=2):
         
         self.n = n # n-gram
+        self.texts_orig = texts
         self.texts_ngram = [list(nltk.ngrams(text,self.n)) for text in texts] #各文書のngramリスト(ex.('apple','tree'))
         self.texts_sub1gram = [list(nltk.ngrams(text,self.n-1)) for text in texts] #各文書のn-1gramリスト
         self.dic_tf_ngram = self.create_tfdic(self.texts_ngram)
@@ -19,11 +20,24 @@ class Ngram:
         
         dic_mle = {}
         for ngram,tf in self.dic_tf_ngram.items():
-            sub1gram = '-'.join(ngram.split('-')[:-1]) if self.n>1 else ngram #1gramの場合はngram自身
+            if self.n>1: sub1gram = '-'.join(ngram.split('-')[:-1])
             c_ngram = tf # ngramの頻度
-            c_sub1gram = self.dic_tf_sub1gram[sub1gram] # n-1gramの頻度
+            c_sub1gram = self.dic_tf_sub1gram[sub1gram] if self.n>1 else len(self.dic_tf_sub1gram) # n-1gramの頻度
             dic_mle[ngram] = c_ngram / c_sub1gram
         return dic_mle
+    
+
+    # 共起回数をカウント(探索幅=search_window,引数w1,w2が複合語であるか=complex_term)
+    def count_cooccur(self,w1,w2,search_window=2,complex_term=False):
+        
+        count = 0
+        if complex_term: search_window= search_window + 1
+        target = DataControler().flatten_list([list(nltk.ngrams(text,search_window)) for text in self.texts_orig])
+        for ngram in target:
+            ngram = '-'.join(ngram) # w1かw2が複合語の場合
+            if w2 in ngram and w1 in ngram.replace('w2',''):
+                count += 1
+        return count   
 
     def create_tfdic(self,texts4dic):
         
