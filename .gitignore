@@ -12,6 +12,7 @@ include/
 lib/
 data/
 result/
+man/
 
 .DS_Store
 *.json
