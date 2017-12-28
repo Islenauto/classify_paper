@@ -1,6 +1,6 @@
 # -*- encoding: UTF-8 -*-
 import re,os,sys
-import psycopg2
+import pandas,psycopg2
 import psycopg2.extras
 import collections
 import csv
@@ -41,6 +41,14 @@ class DataControler:
             select_contents = cont_world + cont_entame + cont_sports + cont_tech + cont_science + cont_business
             select_contents = list(filter(lambda dic:dic['newspaper_id'] == news_id,select_contents))
         return select_contents  
+
+    # 日付単位で記事をリスト化
+    def articles_dev_day(self,articles):
+        
+        df = pandas.DataFrame(articles)
+        df.sort_values(by=['year','month','day'],acsending=True)
+        grouped = df.groupby(['year','month','day'])
+        return list(grouped)
 
 
     def db2dic(self):
