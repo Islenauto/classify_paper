@@ -1,19 +1,33 @@
 # -*- encoding: UTF-8 -*-
 import os,sys,re
+import pandas
 root_path = os.path.dirname(os.getcwd())
 sys.path.append(root_path+"/mylib/")
-import lda,datacontroler as dtct
+from topicmodel import TopicModel
+from datacontroler import DataControler
+from grantlabel import GrantLabel
+
+
+def input_opr():
+    argv = sys.argv
+
+    if (len(argv) < 2):
+        print ("引数が不足しています．下記の例のように入力してください．")
+        print ("ex.) main.py BBC sports")
+        quit()
+    return (argv[1],argv[2])
 
 
 def main():
-    num_topics = sys.argv[1]
-    name_news = sys.argv[2]
-    category = sys.argv[3]
+    name_news,category = input_opr()
+    articles = DataControler().import_data(name_news,category)
 
-    model_lda = lda.Lda(num_topics,name_news,category)
-
-    result_topics = [topic for topic in model_lda.hdp.show_topics(-1)]
-    dtct.DataControler().export_data(result_topics,name_news,category,mode="result")
+    topic_model = TopicModel(articles)
+    grant_label = GrantLabel(topic_model,method=1)
+    id_topics = topic_model.topics_indoc[0].keys()
+    for i in id_topics:
+        labels_dic = grant_label.show_labels(id_topic=i,num_labels=10)
+        pandas.DataFrame().to_csv("{0}/result/labels/{1}/topic_{2}.csv".format(root_path,category,id_topic))
 
 
 if __name__=='__main__':
