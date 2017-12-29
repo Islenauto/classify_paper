@@ -1,8 +1,8 @@
 # -*- encoding: UTF-8 -*-
 import re,nltk
 from gensim import corpora,models,similarities
-from mylib.datacontroler import DataControler
-from mylib.topicmodel import TopicModel
+from datacontroler import DataControler
+from topicmodel import TopicModel
 
 class Ngram:
     def __init__(self,texts,n=2):

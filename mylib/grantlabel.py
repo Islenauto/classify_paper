@@ -3,9 +3,9 @@ import os,sys
 import nltk,pandas,numpy
 from tqdm import tqdm
 from gensim import corpora,models
-from mylib.topicmodel import TopicModel
-from mylib.datacontroler import DataControler
-from mylib.ngram import Ngram
+from topicmodel import TopicModel
+from datacontroler import DataControler
+from ngram import Ngram
 
 class GrantLabel:
     def __init__(self,topicmodel,method):
