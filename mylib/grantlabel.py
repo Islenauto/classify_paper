@@ -13,7 +13,7 @@ class GrantLabel:
         data_cont = DataControler()
         self.topic_model = topicmodel
         self.method = method
-        self.W_Theta = self.topic_model.W_Theta # トピック毎の単語生起確率リスト
+        self.W_Theta = self.topic_model.W_Theta_indoc # トピック毎の単語生起確率リスト
         self.C = self.topic_model.data_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成                        
 
@@ -36,7 +36,7 @@ class GrantLabel:
             for word, w_theta in tqdm(W_theta.items()):
                 w_C = self.dic_mle_1gram[word] # コーパスCでの単語wの生起確率(最尤推定量)
                 l_C = self.dic_mle_ngram[label] # コーパスCでのラベルlの生起確率(最尤推定量)
-                cooccur_wl = self.ngram.count_cooccur(word,label,search_window=10,complex_term=True) # w,lの共起頻度
+                cooccur_wl = self.ngram.count_cooccur(word,label,search_window=40,complex_term=True) # w,lの共起頻度
                 wl_C = cooccur_wl / (len(self.W_Theta[0].keys()) - self.ngram.n + 1)
                 score += w_theta * numpy.log(wl_C + 1 / (w_C * l_C))
         
@@ -47,7 +47,7 @@ class GrantLabel:
                
         self.dic_mle_1gram = Ngram(self.C,n=1).mle()
         self.dic_mle_ngram = self.ngram.mle()
-        for W_theta in tqdm(self.W_Theta_indoc):
+        for W_theta in tqdm(self.W_Theta):
             labels_scored_theta = {' '.join(label):self.calc_score_label(label,W_theta) for label in self.labels}
             self.labels_scored.append(labels_scored_theta)
 
