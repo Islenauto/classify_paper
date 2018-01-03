@@ -47,7 +47,7 @@ class GrantLabel:
                
         self.dic_mle_1gram = Ngram(self.C,n=1).mle()
         self.dic_mle_ngram = self.ngram.mle()
-        for W_theta in tqdm(self.W_Theta):
+        for W_theta in tqdm(self.W_Theta_indoc):
             labels_scored_theta = {' '.join(label):self.calc_score_label(label,W_theta) for label in self.labels}
             self.labels_scored.append(labels_scored_theta)
 
