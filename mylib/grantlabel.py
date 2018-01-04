@@ -18,7 +18,7 @@ class GrantLabel:
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成                        
 
         self.labels = list(set(data_cont.flatten_list(self.ngram.texts_ngram)))
-        self.labels_scored = [] # スコアリングしたラベルの辞書をトピック毎に格納するリスト
+        self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
         self.calc_score_labels(method)
 
 
@@ -48,9 +48,9 @@ class GrantLabel:
                
         self.dic_mle_1gram = Ngram(self.C,n=1).mle()
         self.dic_mle_ngram = self.ngram.mle()
-        for W_theta in tqdm(self.W_Theta):
-            labels_scored_theta = {' '.join(label):self.calc_score_label(label,W_theta) for label in self.labels}
-            self.labels_scored.append(labels_scored_theta)
+        for id_topic,W_theta in tqdm(self.W_Theta.items()):
+            labels_scored_theta = {' '.join(label):self.calc_score_label(label,W_theta) for label in tqdm(self.labels)}
+            self.labels_scored[id_topic] = labels_scored_theta
 
 
     def show_labels(self,id_topic,num_labels=10):

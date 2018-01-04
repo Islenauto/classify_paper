@@ -32,8 +32,8 @@ class TopicModel:
         self.id_topics_indoc = list(pandas.DataFrame(self.topics_indoc).columns) # 文書に割り当てがあるトピックのidリスト
         
         temp = [topic for topic in self.hdp.show_topics(num_topics=-1,num_words=len(dictionary),formatted=False)]
-        self.W_Theta = [{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp] # トピック毎の各単語の生起確率リスト
-        self.W_Theta_indoc = [{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp if num in self.id_topics_indoc] # トピック毎の各単語の生起確率リスト(文書に割り当てがあるもの)
+        self.W_Theta = {num:{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp} # トピック毎の各単語の生起確率辞書
+        self.W_Theta_indoc = {num:{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp if num in self.id_topics_indoc} # トピック毎の各単語の生起確率辞書(文書に割り当てがあるもの)
 
 
     def create_tfcorpus(self,texts4dic,texts4corpus):
