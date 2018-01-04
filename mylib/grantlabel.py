@@ -1,6 +1,7 @@
 # -*- encoding: UTF-8 -*-
 import os,sys
 import nltk,pandas,numpy
+import treetaggerwrapper as ttw
 from tqdm import tqdm
 from gensim import corpora,models
 from topicmodel import TopicModel
@@ -10,19 +11,32 @@ from ngram import Ngram
 class GrantLabel:
     def __init__(self,topicmodel,method):
 
-        data_cont = DataControler()
         self.topic_model = topicmodel
         self.method = method
         self.W_Theta = self.topic_model.W_Theta_indoc # トピック毎の単語生起確率リスト
         self.C = self.topic_model.data_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成                        
 
-        self.labels = list(set(data_cont.flatten_list(self.ngram.texts_ngram)))
+        self.labels = self.init_labels(tag_stopwd=['CC','DT','IN','MD','RB'])
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
         self.calc_score_labels(method)
 
 
-    def calc_score_label(self,label,W_theta):
+    # ラベル候補を作成(tag_stopwdで指定した品詞を含むラベルは排除)
+    def init_labels(self,tag_stopwd):
+        
+        tagdir = os.getenv('TREETAGGER_ROOT')
+        tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
+
+        labels = list(set(DataControler().flatten_list(self.ngram.texts_ngram)))
+        new_labels = []
+        for label in labels:
+            pos_results = [result.split('\t')[1] for result in tagger.TagText(' '.join(label))]
+            if list(set(pos_results) & set(tag_stopwd)) == []: new_labels.append(label) 
+        return new_labels
+
+
+    def calc_score_label(self,label,id_topic,W_theta):
         
         score = 0      
         # zero-order relevance (normalize:uniform dist)
@@ -37,7 +51,7 @@ class GrantLabel:
                 w_C = self.dic_mle_1gram[word] # コーパスCでの単語wの生起確率(最尤推定量)
                 l_C = self.dic_mle_ngram[label] # コーパスCでのラベルlの生起確率(最尤推定量)
                 cooccur_wl = self.ngram.count_cooccur(word,label,search_window=40,complex_term=True) # w,lの共起頻度
-                wl_C = cooccur_wl / (len(self.W_Theta[0].keys()) - self.ngram.n + 1)
+                wl_C = cooccur_wl / (len(self.W_Theta[id_topic].keys()) - self.ngram.n + 1)
                 score += w_theta * numpy.log(wl_C + 1 / (w_C * l_C)) # w_theta * PMI(w,l|C)
                 score -= w_theta * numpy.log(w_theta / w_C) # KLダイバージェンス(トピック-コーパスC)
         
@@ -49,7 +63,7 @@ class GrantLabel:
         self.dic_mle_1gram = Ngram(self.C,n=1).mle()
         self.dic_mle_ngram = self.ngram.mle()
         for id_topic,W_theta in tqdm(self.W_Theta.items()):
-            labels_scored_theta = {' '.join(label):self.calc_score_label(label,W_theta) for label in tqdm(self.labels)}
+            labels_scored_theta = {' '.join(label):self.calc_score_label(label,id_topic,W_theta) for label in tqdm(self.labels)}
             self.labels_scored[id_topic] = labels_scored_theta
 
 
