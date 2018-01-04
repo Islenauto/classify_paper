@@ -38,7 +38,8 @@ class GrantLabel:
                 l_C = self.dic_mle_ngram[label] # コーパスCでのラベルlの生起確率(最尤推定量)
                 cooccur_wl = self.ngram.count_cooccur(word,label,search_window=40,complex_term=True) # w,lの共起頻度
                 wl_C = cooccur_wl / (len(self.W_Theta[0].keys()) - self.ngram.n + 1)
-                score += w_theta * numpy.log(wl_C + 1 / (w_C * l_C))
+                score += w_theta * numpy.log(wl_C + 1 / (w_C * l_C)) # w_theta * PMI(w,l|C)
+                score -= w_theta * numpy.log(w_theta / w_C) # KLダイバージェンス(トピック-コーパスC)
         
         return score
     
