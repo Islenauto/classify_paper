@@ -23,7 +23,6 @@ def main():
     articles = DataControler().import_data(name_news,category)
 
     topic_model = TopicModel(articles)
-    print (root_path)
     grant_label = GrantLabel(topic_model,method=1)
     
     id_topics = topic_model.id_topics_indoc
