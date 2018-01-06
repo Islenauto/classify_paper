@@ -10,7 +10,7 @@ root_path = os.path.dirname(os.getcwd())
 #使用するdbのプロパティ
 hostname = "localhost"
 db = "paper_rails_development"
-name = "Daiki"
+name = "s14t287"
 
 class DataControler:
     def get_select_contents(self,newsname,category):
