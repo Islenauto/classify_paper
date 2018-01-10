@@ -18,6 +18,7 @@ class GrantLabel:
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成                        
 
         self.labels = self.init_labels(tag_stopwd=['CC','DT','IN','MD','RB'])
+        #self.labels = list(set(DataControler().flatten_list(self.ngram.texts_ngram)))
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
         self.calc_score_labels(method)
 
@@ -50,10 +51,10 @@ class GrantLabel:
             for word, w_theta in tqdm(W_theta.items()):
                 w_C = self.dic_mle_1gram[word] # コーパスCでの単語wの生起確率(最尤推定量)
                 l_C = self.dic_mle_ngram[label] # コーパスCでのラベルlの生起確率(最尤推定量)
-                cooccur_wl = self.ngram.count_cooccur(word,label,search_window=40,complex_term=True) # w,lの共起頻度
-                wl_C = cooccur_wl / (len(self.W_Theta[id_topic].keys()) - self.ngram.n + 1)
-                score += w_theta * numpy.log(wl_C + 1 / (w_C * l_C)) # w_theta * PMI(w,l|C)
-                score -= w_theta * numpy.log(w_theta / w_C) # KLダイバージェンス(トピック-コーパスC)
+                cooccur_wl = self.ngram.count_cooccur(word,label,search_window=30,complex_term=True) # w,lの共起頻度
+                wl_C = cooccur_wl + 1 / (len(self.W_Theta[id_topic].keys()) - self.ngram.n + 1)
+                score += w_theta * numpy.log2(wl_C / (w_C * l_C)) # w_theta * PMI(w,l|C)
+                score -= w_theta * numpy.log2(w_theta / w_C) # KLダイバージェンス(トピック-コーパスC)
         
         return score
     
