@@ -23,12 +23,13 @@ def main():
     articles = DataControler().import_data(name_news,category)
 
     topic_model = TopicModel(articles)
+    #pandas.DataFrame(topic_model.topics_indoc).to_csv("{0}/data/topics_indoc_{1}.csv".format(root_path,category))
     grant_label = GrantLabel(topic_model,method=1)
     
     id_topics = topic_model.id_topics_indoc
     for i in id_topics:
         labels_dic = grant_label.show_labels(id_topic=i,num_labels=10)
-        pandas.DataFrame(labels_dic).to_csv("{0}/result/labels/{1}/topic_{2}.csv".format(root_path,category,i))
+        pandas.DataFrame(labels_dic).to_csv("{0}/result/labels/3gram/{1}/topic_{2}.csv".format(root_path,category,i))
 
 
 if __name__=='__main__':
