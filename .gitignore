@@ -15,6 +15,7 @@ result/
 man/
 
 .DS_Store
+database.py
 *.json
 *.cfg
 *.txt
