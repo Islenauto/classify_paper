@@ -27,19 +27,10 @@ class DataControler:
         print (num_category_dic)
         
         # 指定新聞社・カテゴリの記事を抽出(カテゴリ=allは全カテゴリを均等数抽出)
-        if category != '-1':
-            select_contents = list(filter(lambda dic:dic['newspaper_id'] == news_id and dic['category'] == category,self.arti_cont_dic))
-        else:
-            num_least_category = min(num_category_dic.values())
-            cont_world = list(filter(lambda dic:dic['category'] == 'world',self.arti_cont_dic))[0:num_least_category+1]
-            cont_entame = list(filter(lambda dic:dic['category'] == 'entertainment',self.arti_cont_dic))[0:num_least_category+1]
-            cont_sports = list (filter(lambda dic:dic['category'] == 'sports',self.arti_cont_dic))[0:num_least_category+1]
-            cont_tech = list(filter(lambda dic:dic['category'] == 'technology',self.arti_cont_dic))[0:num_least_category+1]
-            cont_science = list(filter(lambda dic:dic['category'] == 'science',self.arti_cont_dic))[0:num_least_category+1]
-            cont_business = list(filter(lambda dic:dic['category'] == 'business',self.arti_cont_dic))[0:num_least_category+1]
-
-            select_contents = cont_world + cont_entame + cont_sports + cont_tech + cont_science + cont_business
-            select_contents = list(filter(lambda dic:dic['newspaper_id'] == news_id,select_contents))
+        select_contents = list(filter(lambda dic:dic['newspaper_id'] == news_id and dic['category'] == category,self.arti_cont_dic))
+        select_contents = cont_world + cont_entame + cont_sports + cont_tech + cont_science + cont_business
+        select_contents = list(filter(lambda dic:dic['newspaper_id'] == news_id,select_contents))
+        
         return select_contents  
 
     # 日付単位で記事をリスト化
