@@ -7,25 +7,28 @@ import re,sys,os
 root_path = os.path.dirname(os.getcwd())
 
 class TopicModel:
-    def __init__(self,articles):
+    def __init__(self,articles=-1):
 
         self.data_original = [article['sentence_preprocessed'] for article in articles]
         self.data_parsed = [article['sentence'] for article in articles]
         
+        # dictionary,corpus,model読み込み(既存のモデル使用時) 
+        if articles == -1: 
+            dictionary = corpora.Dictionary.load(root_path+'/data/articles.dict')
+            corpus_tfidf = corpora.MmCorpus(root_path+'/data/articles.mm')
+            self.hdp = models.hdpmodel.HdpModel.load(root_path+'/data/hdp.model')
+        
         # dictionary,corpus,model作成(新規作成時)
-        #dictionary,corpus = self.create_tfcorpus(self.data_parsed,self.data_parsed)
-        #tfidf = models.TfidfModel(corpus)
-        #corpus_tfidf = tfidf[corpus]
-        #dictionary.save(root_path+'/data/articles.dict')
-        #corpora.MmCorpus.serialize(root_path+'/data/articles.mm',corpus_tfidf)
-        #self.lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, num_topics=6,id2word=dictionary)
-        #self.hdp = models.hdpmodel.HdpModel(corpus=corpus_tfidf,id2word=dictionary,T=30)
-        #self.hdp.save(root_path+'/data/hdp.model')
-
-        # dictionary,corpus,model読み込み(既存のモデル使用時)
-        dictionary = corpora.Dictionary.load(root_path+'/data/articles.dict')
-        corpus_tfidf = corpora.MmCorpus(root_path+'/data/articles.mm')
-        self.hdp = models.hdpmodel.HdpModel.load(root_path+'/data/hdp.model')
+        else: 
+            dictionary,corpus = self.create_tfcorpus(self.data_parsed,self.data_parsed)
+            tfidf = models.TfidfModel(corpus)
+            corpus_tfidf = tfidf[corpus]
+            dictionary.save(root_path+'/data/articles.dict')
+            corpora.MmCorpus.serialize(root_path+'/data/articles.mm',corpus_tfidf)
+            self.lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, num_topics=6,id2word=dictionary)
+            self.hdp = models.hdpmodel.HdpModel(corpus=corpus_tfidf,id2word=dictionary,T=30)
+            self.hdp.save(root_path+'/data/hdp.model')
+        
  
         self.topics_indoc = [dict(self.hdp[c]) for c in corpus_tfidf] # 各doc内のトピック分布リスト
         self.num_topics_indoc = pandas.DataFrame(self.topics_indoc).shape[1] # トピック数 
