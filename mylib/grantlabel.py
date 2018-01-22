@@ -2,11 +2,12 @@
 import os,sys
 import nltk,pandas,numpy
 import treetaggerwrapper as ttw
+from itertools import chain
 from tqdm import tqdm
 from gensim import corpora,models
 from topicmodel import TopicModel
-from datacontroler import DataControler
 from ngram import Ngram
+
 
 class GrantLabel:
     def __init__(self,topicmodel,method):
@@ -14,11 +15,11 @@ class GrantLabel:
         self.topic_model = topicmodel
         self.method = method
         self.W_Theta = self.topic_model.W_Theta_indoc # トピック毎の単語生起確率リスト
-        self.C = self.topic_model.data_parsed # 文脈情報に用いるコーパスC
+        self.C = self.topic_model.sentences_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成                        
 
-        self.labels = self.init_labels(tag_stopwd=['CC','DT','IN','MD','RB'])
-        #self.labels = list(set(DataControler().flatten_list(self.ngram.texts_ngram)))
+        #self.labels = self.init_labels(tag_stopwd=['CC','DT','IN','MD','RB'])
+        self.labels = list(set(chain.from_iterable(self.ngram.texts_ngram)))
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
         self.calc_score_labels(method)
 
@@ -29,7 +30,7 @@ class GrantLabel:
         tagdir = os.getenv('TREETAGGER_ROOT')
         tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
 
-        labels = list(set(DataControler().flatten_list(self.ngram.texts_ngram)))
+        labels = list(set(chain.from_iterable(self.ngram.texts_ngram)))
         new_labels = []
         for label in labels:
             pos_results = [result.split('\t')[1] for result in tagger.TagText(' '.join(label))]
