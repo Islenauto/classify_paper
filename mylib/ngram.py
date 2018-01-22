@@ -1,7 +1,7 @@
 # -*- encoding: UTF-8 -*-
 import re,nltk
 from gensim import corpora,models,similarities
-from datacontroler import DataControler
+from itertools import chain
 
 class Ngram:
     def __init__(self,texts,n=2):
@@ -31,7 +31,7 @@ class Ngram:
         
         count = 0
         if complex_term: search_window= search_window + 1
-        target = DataControler().flatten_list([list(nltk.ngrams(text,search_window)) for text in self.texts_orig])
+        target = chain.from_iterable([list(nltk.ngrams(text,search_window)) for text in self.texts_orig])
         for ngram in target:
             ngram = '-'.join(ngram) # w1かw2が複合語の場合
             if w2 in ngram and w1 in ngram.replace('w2',''):
@@ -45,7 +45,7 @@ class Ngram:
             temp_ngram = ['-'.join(ngram) for ngram in ngrams]
             texts_ngram_joined.append(temp_ngram)
         texts4dic = texts_ngram_joined
-        texts4corpus = DataControler().flatten_list(texts4dic)
+        texts4corpus = chain.from_iterable(texts4dic)
         dic_word2id,lis_tf = self.create_tflis(texts4dic,texts4corpus)
         
         dic_tf = {dic_word2id[word_id]:tf for word_id,tf in lis_tf[0]}
