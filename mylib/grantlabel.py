@@ -19,7 +19,7 @@ class GrantLabel:
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成                        
 
         #self.labels = self.init_labels(tag_stopwd=['CC','DT','IN','MD','RB'])
-        self.labels = list(set(chain.from_iterable(self.ngram.texts_ngram)))
+        self.labels = set(list(chain.from_iterable(self.ngram.texts_ngram)))
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
         self.calc_score_labels(method)
 
@@ -30,7 +30,7 @@ class GrantLabel:
         tagdir = os.getenv('TREETAGGER_ROOT')
         tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
 
-        labels = list(set(chain.from_iterable(self.ngram.texts_ngram)))
+        labels = set(list(chain.from_iterable(self.ngram.texts_ngram)))
         new_labels = []
         for label in labels:
             pos_results = [result.split('\t')[1] for result in tagger.TagText(' '.join(label))]
