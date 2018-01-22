@@ -5,8 +5,8 @@ import treetaggerwrapper as ttw
 from itertools import chain
 from tqdm import tqdm
 from gensim import corpora,models
-from topicmodel import TopicModel
-from ngram import Ngram
+from mylib.topicmodel import TopicModel
+from mylib.ngram import Ngram
 
 
 class GrantLabel:
