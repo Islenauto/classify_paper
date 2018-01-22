@@ -2,6 +2,7 @@ boto==2.48.0
 bz2file==0.98
 certifi==2017.7.27.1
 chardet==3.0.4
+compiler==0.2.0
 gensim==2.3.0
 idna==2.6
 nltk==3.2.4
