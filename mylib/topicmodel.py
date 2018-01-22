@@ -8,7 +8,7 @@ import re,sys,os
 root_path = os.path.dirname(os.getcwd())
 
 class TopicModel:
-    def __init__(self,tb_articles,update=False):
+    def __init__(self,tb_articles=None,update=False):
         # 既存のdictionary,corpus,modelが無い場合は新規作成
         if update == True:
             self.update_model(tb_articles)
