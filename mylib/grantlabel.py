@@ -52,7 +52,7 @@ class GrantLabel:
             for word, w_theta in tqdm(W_theta.items()):
                 w_C = self.dic_mle_1gram[word] # コーパスCでの単語wの生起確率(最尤推定量)
                 l_C = self.dic_mle_ngram[label] # コーパスCでのラベルlの生起確率(最尤推定量)
-                cooccur_wl = self.ngram.count_cooccur(word,label,search_window=30,complex_term=True) # w,lの共起頻度
+                cooccur_wl = self.dic_cooccur[word][label] # w,lの共起頻度
                 wl_C = cooccur_wl + 1 / (len(self.W_Theta[id_topic].keys()) - self.ngram.n + 1)
                 score += w_theta * numpy.log2(wl_C / (w_C * l_C)) # w_theta * PMI(w,l|C)
                 score -= w_theta * numpy.log2(w_theta / w_C) # KLダイバージェンス(トピック-コーパスC)
@@ -61,9 +61,12 @@ class GrantLabel:
     
     
     def calc_score_labels(self,method):
-               
-        self.dic_mle_1gram = Ngram(self.C,n=1).mle()
-        self.dic_mle_ngram = self.ngram.mle()
+        
+        if method == 1:
+            self.dic_mle_1gram = Ngram(self.C,n=1).mle()
+            self.dic_mle_ngram = self.ngram.mle()
+            self.dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,self.labels,self.C)
+
         for id_topic,W_theta in tqdm(self.W_Theta.items()):
             labels_scored_theta = {' '.join(label):self.calc_score_label(label,id_topic,W_theta) for label in tqdm(self.labels)}
             self.labels_scored[id_topic] = labels_scored_theta
