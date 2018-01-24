@@ -65,7 +65,8 @@ class GrantLabel:
         if method == 1:
             self.dic_mle_1gram = Ngram(self.C,n=1).mle()
             self.dic_mle_ngram = self.ngram.mle()
-            self.dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,self.labels,self.C)
+            labels = ["-".join(label) for label in self.labels ]
+            self.dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,labels,self.C,search_window=30,complex_term=True)
 
         for id_topic,W_theta in tqdm(self.W_Theta.items()):
             labels_scored_theta = {' '.join(label):self.calc_score_label(label,id_topic,W_theta) for label in tqdm(self.labels)}
