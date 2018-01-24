@@ -1,5 +1,5 @@
 # -*- encoding: UTF-8 -*-
-import re,nltk
+import re,nltk,sys
 from gensim import corpora,models,similarities
 from itertools import chain
 
@@ -24,19 +24,25 @@ class Ngram:
             c_sub1gram = self.dic_tf_sub1gram[sub1gram] if self.n>1 else len(self.dic_tf_sub1gram) # n-1gramの頻度
             dic_mle[ngram] = c_ngram / c_sub1gram
         return dic_mle
-    
 
-    # 共起回数をカウント(探索幅=search_window,引数w1,w2が複合語であるか=complex_term)
-    def count_cooccur(self,w1,w2,search_window=2,complex_term=False):
+
+    # count_cooccurの初期化処理(search_window=探索幅，complex_term=共起対象のどちらかが複合語であるか)
+    def init_count_cooccur(self,search_window=2,complex_term=False):
+        
+        search_window += self.n if complex_term  else 1
+        self.target = list(chain.from_iterable([list(nltk.ngrams(text,search_window)) for text in self.texts_orig]))
+        self.target = ["-".join(ngram) for ngram in self.target]
+     
+
+    # 共起回数をカウント
+    def count_cooccur(self,w1,w2):
         
         count = 0
-        if complex_term: search_window= search_window + 1
-        target = list(chain.from_iterable([list(nltk.ngrams(text,search_window)) for text in self.texts_orig]))
-        for ngram in target:
-            ngram = '-'.join(ngram) # w1かw2が複合語の場合
+        for ngram in self.target:
             if w2 in ngram and w1 in ngram.replace('w2',''):
                 count += 1
         return count   
+
 
     def create_tfdic(self,texts4dic):
         
@@ -50,6 +56,7 @@ class Ngram:
         
         dic_tf = {dic_word2id[word_id]:tf for word_id,tf in lis_tf[0]}
         return dic_tf
+
 
     def create_tflis(self,texts4dic,texts4corpus):
         
