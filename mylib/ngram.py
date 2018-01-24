@@ -1,5 +1,6 @@
 # -*- encoding: UTF-8 -*-
 import re,nltk,sys
+from tqdm import tqdm
 import pandas as pd
 from gensim import corpora,models,similarities
 from itertools import chain
@@ -44,7 +45,7 @@ class Ngram:
         self.target = list(chain.from_iterable([list(nltk.ngrams(target,search_window)) for target in targets]))
 
         dic_cooccur = {}
-        for w1 in words_1:
+        for w1 in tqdm(words_1):
             dic_cooccur[w1] = {w2: self.count_cooccur(w1,w2) for w2 in words_2}
         return dic_cooccur
     
