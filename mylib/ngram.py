@@ -1,5 +1,6 @@
 # -*- encoding: UTF-8 -*-
 import re,nltk,sys
+import pandas as pd
 from gensim import corpora,models,similarities
 from itertools import chain
 
@@ -26,24 +27,28 @@ class Ngram:
         return dic_mle
 
 
-    # count_cooccurの初期化処理(search_window=探索幅，complex_term=共起対象のどちらかが複合語であるか)
-    def init_count_cooccur(self,search_window=2,complex_term=False):
-        
-        search_window += self.n if complex_term  else 1
-        self.target = list(chain.from_iterable([list(nltk.ngrams(text,search_window)) for text in self.texts_orig]))
-        self.target = ["-".join(ngram) for ngram in self.target]
-     
-
     # 共起回数をカウント
     def count_cooccur(self,w1,w2):
         
         count = 0
         for ngram in self.target:
-            if w2 in ngram and w1 in ngram.replace('w2',''):
+            if w1 in ngram and w2 in "-".join(ngram):
                 count += 1
         return count   
 
 
+    # 共起回数の辞書を作成(search_window:探索幅，complex_term:共起対象に複合語が含まれるか)
+    def make_dic_cooccur(self,words_1,words_2,targets,search_window=2,complex_term=False):
+
+        search_window = self.n + 1 if complex_term else 2
+        self.target = list(chain.from_iterable([list(nltk.ngrams(target,search_window)) for target in targets]))
+
+        dic_cooccur = {}
+        for w1 in words_1:
+            dic_cooccur[w1] = {w2: self.count_cooccur(w1,w2) for w2 in words_2}
+        return dic_cooccur
+    
+    
     def create_tfdic(self,texts4dic):
         
         texts_ngram_joined = []  #各ngramを単一の文字列としたリスト(ex.['apple-tree','tree-under'],...)
