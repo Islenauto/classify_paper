@@ -1,6 +1,7 @@
 # -*- encoding: UTF-8 -*-
 import re,nltk,sys
 from tqdm import tqdm
+import numpy as np
 import pandas as pd
 from gensim import corpora,models,similarities
 from itertools import chain
@@ -27,7 +28,7 @@ class Ngram:
             dic_mle[ngram] = c_ngram / c_sub1gram
         return dic_mle
 
-
+    
     # 共起回数をカウント
     def count_cooccur(self,w1,w2):
         
@@ -49,7 +50,19 @@ class Ngram:
             dic_cooccur[w1] = {w2: self.count_cooccur(w1,w2) for w2 in words_2}
         return dic_cooccur
     
-    
+
+    def t_score(self,w_target,w_cooccur,dic_cooccur):
+        
+        frq_cooccur = dic_cooccur[w_target][w_cooccur]  # 共起頻度
+        frq_w_tag = self.dic_tf_sub1gram[w_target] # 中心語頻度
+        frq_w_cooccur = self.dic_tf_sub1gram[w_cooccur] # 共起語頻度
+        sum_tf = sum(self.dic_tf_sub1gram.values()) # 総語数
+        ave_frq_cooccur = (frq_w_tag * frq_w_cooccur) / sum_tf # 共起頻度期待値
+
+        t = (frq_cooccur - ave_frq_cooccur) / np.sqrt(frq_cooccur) # t値
+        return t
+
+
     def create_tfdic(self,texts4dic):
         
         texts_ngram_joined = []  #各ngramを単一の文字列としたリスト(ex.['apple-tree','tree-under'],...)
