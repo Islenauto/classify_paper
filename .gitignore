@@ -16,6 +16,7 @@ man/
 
 .DS_Store
 database.py
+tmp_*.py
 *.json
 *.cfg
 *.txt
