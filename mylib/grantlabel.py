@@ -18,35 +18,47 @@ class GrantLabel:
         self.W_Theta = self.topic_model.W_Theta_indoc # トピック毎の単語生起確率リスト
         self.C = self.topic_model.sentences_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成        
-        self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n),index_col=0,encoding="cp932")
+        #self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n),index_col=0,encoding="cp932")
         
-        #self.labels = self.init_labels(tag_stopwd=['CC','DT','IN','MD','RB'])
-        self.labels = self.init_labels(tag_stopwd=[])
-        pandas.DataFrame(["-".join(label) for label in self.labels]).to_csv("../data/labels_candidate.csv")
-        #self.labels = set(list(chain.from_iterable(self.ngram.texts_ngram)))
+        self.labels = set(list(chain.from_iterable(self.ngram.texts_ngram)))
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
         self.calc_score_labels(method)
 
 
     # ラベル候補を作成(品詞とtスコアによる選定)
-    def init_labels(self,tag_stopwd):
+    def selection_label(self,labels,tag_stopwd,tscore=False,pos=False):
         
-        tagdir = os.getenv('TREETAGGER_ROOT')
-        tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
+        if tscore: labels = self.extract_label_by_tscore(labels)
+        if pos: labels = self.extract_label_by_pos(new_labels,lis_pos=["NN","NNS","NP","NPS"])
+        #new_labels = self.extract_label_by_pos(labels,lis_pos=['CC','DT','IN','MD','RB'])
+        
 
-        labels = set(list(chain.from_iterable(self.ngram.texts_ngram)))
-        dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,self.topic_model.W,self.C)
+    def extract_label_by_tscore(self,labels,threshold_rank=1000):
         
+        dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,self.topic_model.W,self.C)
         new_labels = []
+
         for label in labels:
-            #pos_results = [result.split('\t')[1] for result in tagger.TagText(' '.join(label))]
-            #if list(set(pos_results) & set(tag_stopwd)) == []: 
-            t = self.ngram.t_score(label[0],label[1],dic_cooccur)
+            t_score = self.ngram.t_score(label[0],label[1],dic_cooccur)
             new_labels.append((label,t))
         new_labels.sort(key=itemgetter(1),reverse=True)
         new_labels = [label for label,t in new_labels]
 
-        return new_labels[:1000]
+        return new_labels[:threshold_rank]
+
+
+    def extract_label_by_pos(self,labels,lis_pos):
+
+        tagdir = os.getenv('TREETAGGER_ROOT')
+        tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
+        new_labels = [], flag_pos = 1
+        
+        for label in labels:
+            pos_results = [result.split('\t')[1] for result in tagger.TagText(' '.join(label))]
+            for pos in pos_results:
+                if pos not in lis_pos: flag_pos = 0
+            if flag_pos: new_labels.append(label)
+        return new_labels
 
 
     def calc_score_label(self,label,id_topic,W_theta):
@@ -77,7 +89,8 @@ class GrantLabel:
             self.dic_mle_1gram = Ngram(self.C,n=1).mle()
             self.dic_mle_ngram = self.ngram.mle()
             labels = ["-".join(label) for label in self.labels]
-            #self.dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,labels,self.C,search_window=30,complex_term=True)
+            self.dic_cooccur_wl= self.ngram.make_dic_cooccur(self.topic_model.W,labels,self.C,search_window=30,complex_term=True)
+            pandas.DataFrame(self.dic_cooccur_wl).to_csv("../data/cooccur_wl.csv")
 
         for id_topic,W_theta in tqdm(self.W_Theta.items()):
             labels_scored_theta = {' '.join(label):self.calc_score_label(label,id_topic,W_theta) for label in tqdm(self.labels)}
