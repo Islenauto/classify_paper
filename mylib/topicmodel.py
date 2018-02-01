@@ -15,7 +15,9 @@ class TopicModel:
         
         # dictionary,corpus,model読み込み 
         tb_articles = pd.read_csv(root_path+'/data/articles.csv')
-        self.sentences_parsed = [row['sentence_parsed'].split(",") for index,row in tb_articles.iterrows()]
+        self.sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
+        self.sentences_parsed_with_pos = [row['sentence_parsed_with_pos'].split("\t") for index,row in tb_articles.iterrows()]
+        
         dictionary = corpora.Dictionary.load(root_path+'/data/articles.dict')
         corpus_tfidf = corpora.MmCorpus(root_path+'/data/articles.mm')
         self.hdp = models.hdpmodel.HdpModel.load(root_path+'/data/hdp.model')
@@ -39,8 +41,8 @@ class TopicModel:
 
 
     def update_model(self,tb_articles):
-        sentences_parsed = [row['sentence_parsed'].split(",") for index,row in tb_articles.iterrows()]
-        
+        sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
+
         dictionary,corpus = self.create_tfcorpus(sentences_parsed,sentences_parsed)
         tfidf = models.TfidfModel(corpus)
         corpus_tfidf = tfidf[corpus]
