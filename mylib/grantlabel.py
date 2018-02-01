@@ -19,28 +19,35 @@ class GrantLabel:
         self.C = self.topic_model.sentences_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成        
         #self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n),index_col=0,encoding="cp932")
-        
-        self.labels = set(list(chain.from_iterable(self.ngram.texts_ngram)))
+        self.labels = self.make_label(tscore=False,pos=False)
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
-        self.calc_score_labels(method)
 
+        self.calc_score_labels(method)
+        
 
     # ラベル候補を作成(品詞とtスコアによる選定)
-    def selection_label(self,labels,tag_stopwd,tscore=False,pos=False):
-        
+    def make_label(self,tscore=False,pos=False):
+        ngram = Ngram(self.topic_model.sentences_parsed_with_pos,n=2)
+        labels = set(list(chain.from_iterable(ngram.texts_ngram)))
+
         if tscore: labels = self.extract_label_by_tscore(labels)
-        if pos: labels = self.extract_label_by_pos(new_labels,lis_pos=["NN","NNS","NP","NPS"])
+        if pos: labels = self.extract_label_by_pos(labels,lis_pos=["NN","NNS","NP","NPS"])
         #new_labels = self.extract_label_by_pos(labels,lis_pos=['CC','DT','IN','MD','RB'])
+        labels = [(label[0].split("-")[0],label[1].split("-")[0]) for label in labels]
+        return labels
         
 
     def extract_label_by_tscore(self,labels,threshold_rank=1000):
         
-        dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,self.topic_model.W,self.C)
+        #dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,self.topic_model.W,self.C)
+        #pandas.DataFrame(dic_cooccur).to_csv("../data/dic_cooccur_ww.csv")       
+        dic_cooccur = pandas.read_csv("../data/cooccur_ww.csv",index_col=0)
         new_labels = []
 
         for label in labels:
-            t_score = self.ngram.t_score(label[0],label[1],dic_cooccur)
-            new_labels.append((label,t))
+            label_word = [word_pos.split("-")[0] for word_pos in label]
+            t_score = self.ngram.t_score(label_word[0],label_word[1],dic_cooccur)
+            new_labels.append((label,t_score))
         new_labels.sort(key=itemgetter(1),reverse=True)
         new_labels = [label for label,t in new_labels]
 
@@ -49,15 +56,28 @@ class GrantLabel:
 
     def extract_label_by_pos(self,labels,lis_pos):
 
-        tagdir = os.getenv('TREETAGGER_ROOT')
-        tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
-        new_labels = [], flag_pos = 1
+        new_labels = []
         
         for label in labels:
-            pos_results = [result.split('\t')[1] for result in tagger.TagText(' '.join(label))]
-            for pos in pos_results:
-                if pos not in lis_pos: flag_pos = 0
-            if flag_pos: new_labels.append(label)
+            label_word = [word_pos.split("-")[0] for word_pos in label]
+            label_pos = [word_pos.split("-")[1] for word_pos in label]   
+            if len(set(lis_pos) | set(label_pos)) == len(lis_pos): new_labels.append(label)
+        return new_labels
+
+       # tagdir = os.getenv('TREETAGGER_ROOT')
+       # tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
+       # new_labels = []
+       # 
+       # for label in labels:
+       #     for result in tagger.TagText(' '.join(label)):
+       #         print(result)
+       #     pos_results = [result.split('\t')[1] for result in tagger.TagText(' '.join(label))]
+       #     flag_pos = 1
+       #     for pos in pos_results: 
+       #         if pos not in lis_pos: 
+       #             flag_pos = 0
+       #             break
+       #     if flag_pos: new_labels.append(label)
         return new_labels
 
 
@@ -90,7 +110,7 @@ class GrantLabel:
             self.dic_mle_ngram = self.ngram.mle()
             labels = ["-".join(label) for label in self.labels]
             self.dic_cooccur_wl= self.ngram.make_dic_cooccur(self.topic_model.W,labels,self.C,search_window=30,complex_term=True)
-            pandas.DataFrame(self.dic_cooccur_wl).to_csv("../data/cooccur_wl.csv")
+            pandas.DataFrame(self.dic_cooccur_wl).to_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n))
 
         for id_topic,W_theta in tqdm(self.W_Theta.items()):
             labels_scored_theta = {' '.join(label):self.calc_score_label(label,id_topic,W_theta) for label in tqdm(self.labels)}
