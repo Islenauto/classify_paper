@@ -18,22 +18,23 @@ class GrantLabel:
         self.W_Theta = self.topic_model.W_Theta_indoc # トピック毎の単語生起確率リスト
         self.C = self.topic_model.sentences_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成        
-        #self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n),index_col=0,encoding="cp932")
-        self.labels = self.make_label(tscore=False,pos=False)
+        self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n),index_col=0,encoding="cp932")
+        self.labels = self.make_label(tscore=True,pos=True) 
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
 
         self.calc_score_labels(method)
         
 
     # ラベル候補を作成(品詞とtスコアによる選定)
-    def make_label(self,tscore=False,pos=False):
+    def make_label(self,tscore=False,pos=True):
+        
         ngram = Ngram(self.topic_model.sentences_parsed_with_pos,n=2)
         labels = set(list(chain.from_iterable(ngram.texts_ngram)))
 
         if tscore: labels = self.extract_label_by_tscore(labels)
         if pos: labels = self.extract_label_by_pos(labels,lis_pos=["NN","NNS","NP","NPS"])
-        #new_labels = self.extract_label_by_pos(labels,lis_pos=['CC','DT','IN','MD','RB'])
         labels = [(label[0].split("-")[0],label[1].split("-")[0]) for label in labels]
+        
         return labels
         
 
@@ -54,30 +55,18 @@ class GrantLabel:
         return new_labels[:threshold_rank]
 
 
-    def extract_label_by_pos(self,labels,lis_pos):
+    def extract_label_by_pos(self,labels,lis_pos,mode_invert=False):
 
         new_labels = []
         
         for label in labels:
             label_word = [word_pos.split("-")[0] for word_pos in label]
             label_pos = [word_pos.split("-")[1] for word_pos in label]   
-            if len(set(lis_pos) | set(label_pos)) == len(lis_pos): new_labels.append(label)
-        return new_labels
-
-       # tagdir = os.getenv('TREETAGGER_ROOT')
-       # tagger = ttw.TreeTagger(TAGLANG='en',TAGDIR=tagdir)
-       # new_labels = []
-       # 
-       # for label in labels:
-       #     for result in tagger.TagText(' '.join(label)):
-       #         print(result)
-       #     pos_results = [result.split('\t')[1] for result in tagger.TagText(' '.join(label))]
-       #     flag_pos = 1
-       #     for pos in pos_results: 
-       #         if pos not in lis_pos: 
-       #             flag_pos = 0
-       #             break
-       #     if flag_pos: new_labels.append(label)
+            if mode_invert:
+                if len(set(lis_pos) & set(label_pos)) == 0: new_labels.append(label)
+            else:
+                if len(set(lis_pos) | set(label_pos)) == len(lis_pos): new_labels.append(label)
+ 
         return new_labels
 
 
@@ -109,13 +98,22 @@ class GrantLabel:
             self.dic_mle_1gram = Ngram(self.C,n=1).mle()
             self.dic_mle_ngram = self.ngram.mle()
             labels = ["-".join(label) for label in self.labels]
-            self.dic_cooccur_wl= self.ngram.make_dic_cooccur(self.topic_model.W,labels,self.C,search_window=30,complex_term=True)
-            pandas.DataFrame(self.dic_cooccur_wl).to_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n))
+            #self.dic_cooccur_wl= self.ngram.make_dic_cooccur(self.topic_model.W,labels,self.C,search_window=30,complex_term=True)
+            #pandas.DataFrame(self.dic_cooccur_wl).to_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n))
 
         for id_topic,W_theta in tqdm(self.W_Theta.items()):
             labels_scored_theta = {' '.join(label):self.calc_score_label(label,id_topic,W_theta) for label in tqdm(self.labels)}
             self.labels_scored[id_topic] = labels_scored_theta
 
+
+    def calc_score_labels_2(self,labels_scored,myu=0.8):
+        
+        k = self.topic_model.K
+        
+        for id_topic in labels_scored.keys():
+            
+            
+        
 
     def show_labels(self,id_topic,num_labels=10):
         df = pandas.Series(self.labels_scored[id_topic]).sort_values(ascending=False)
