@@ -26,7 +26,7 @@ class TopicModel:
         self.topics_indoc = [dict(self.hdp[c]) for c in corpus_tfidf] # 各doc内のトピック分布リスト
         self.num_topics_indoc = pd.DataFrame(self.topics_indoc).shape[1] # トピック数 
         self.id_topics_indoc = list(pd.DataFrame(self.topics_indoc).columns) # 文書に割り当てがあるトピックのidリスト
-        
+        self.K = len(self.id_topics_indoc) # トピック数
         temp = [topic for topic in self.hdp.show_topics(num_topics=-1,num_words=len(dictionary),formatted=False)]
         self.W_Theta = {num:{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp} # トピック毎の各単語の生起確率辞書
         self.W_Theta_indoc = {num:{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp if num in self.id_topics_indoc} # トピック毎の各単語の生起確率辞書(文書に割り当てがあるもの)
