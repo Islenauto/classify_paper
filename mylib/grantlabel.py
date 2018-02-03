@@ -19,14 +19,15 @@ class GrantLabel:
         self.C = self.topic_model.sentences_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成        
         self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n),index_col=0,encoding="cp932")
-        self.labels = self.make_label(tscore=True,pos=True) 
+        self.labels = self.make_label(tscore=False,pos=False) 
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
-
+        
         self.calc_score_labels(method)
+        self.calc_score_labels_2(self.labels_scored)
         
 
     # ラベル候補を作成(品詞とtスコアによる選定)
-    def make_label(self,tscore=False,pos=True):
+    def make_label(self,tscore=False,pos=False):
         
         ngram = Ngram(self.topic_model.sentences_parsed_with_pos,n=2)
         labels = set(list(chain.from_iterable(ngram.texts_ngram)))
@@ -106,14 +107,23 @@ class GrantLabel:
             self.labels_scored[id_topic] = labels_scored_theta
 
 
-    def calc_score_labels_2(self,labels_scored,myu=0.8):
+    def calc_score_labels_2(self,labels_scored,myu=0.7):
         
         k = self.topic_model.K
+        new_labels_scored = {}
+
+        for i in labels_scored.keys():
+            temp_labels_scored = {}
+            for label,score in labels_scored[i].items():
+                Ei_pmi = score # 該当トピックへのラベルスコア
+                Ej_pmi = 0
+                for j in labels_scored.keys() - [i]: Ej_pmi += labels_scored[j][label]
+                new_score = (1 + myu / (k - 1)) * Ei_pmi - (myu / (k - 1)) * Ej_pmi
+                temp_labels_scored[label] = new_score
+            new_labels_scored[i] = temp_labels_scored
         
-        for id_topic in labels_scored.keys():
-            
-            
-        
+        self.calc_score_labels = new_labels_scored
+
 
     def show_labels(self,id_topic,num_labels=10):
         df = pandas.Series(self.labels_scored[id_topic]).sort_values(ascending=False)
