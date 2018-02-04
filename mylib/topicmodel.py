@@ -14,7 +14,7 @@ class TopicModel:
             self.update_model(tb_articles)
         
         # dictionary,corpus,model読み込み 
-        tb_articles = pd.read_csv(root_path+'/data/articles.csv')
+        tb_articles = pd.read_excel(root_path+'/data/articles.xlsx')
         self.sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
         self.sentences_parsed_with_pos = [row['sentence_parsed_with_pos'].split("\t") for index,row in tb_articles.iterrows()]
         
@@ -48,7 +48,7 @@ class TopicModel:
         corpus_tfidf = tfidf[corpus]
         hdp = models.hdpmodel.HdpModel(corpus=corpus_tfidf,id2word=dictionary,T=30)
 
-        tb_articles.to_csv(root_path+"/data/articles.csv")
+        tb_articles.to_excel(root_path+"/data/articles.xlsx")
         dictionary.save(root_path+'/data/articles.dict')
         corpora.MmCorpus.serialize(root_path+'/data/articles.mm',corpus_tfidf)
         hdp.save(root_path+'/data/hdp.model')
