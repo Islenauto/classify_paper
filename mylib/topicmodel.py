@@ -8,13 +8,12 @@ import re,sys,os
 root_path = os.path.dirname(os.getcwd())
 
 class TopicModel:
-    def __init__(self,tb_articles=None,update=False):
+    def __init__(self,tb_articles,update=False):
         # 既存のdictionary,corpus,modelが無い場合は新規作成
         if update == True:
             self.update_model(tb_articles)
         
         # dictionary,corpus,model読み込み 
-        tb_articles = pd.read_excel(root_path+'/data/articles.xlsx')
         self.sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
         self.sentences_parsed_with_pos = [row['sentence_parsed_with_pos'].split("\t") for index,row in tb_articles.iterrows()]
         
@@ -42,7 +41,6 @@ class TopicModel:
 
     def update_model(self,tb_articles):
         sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
-
         dictionary,corpus = self.create_tfcorpus(sentences_parsed,sentences_parsed)
         tfidf = models.TfidfModel(corpus)
         corpus_tfidf = tfidf[corpus]
