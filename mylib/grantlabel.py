@@ -18,12 +18,12 @@ class GrantLabel:
         self.W_Theta = self.topic_model.W_Theta_indoc # トピック毎の単語生起確率リスト
         self.C = self.topic_model.sentences_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成        
-        self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n),index_col=0,encoding="cp932")
-        self.labels = self.make_label(tscore=False,pos=False) 
+        self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram_30(all).csv".format(self.ngram.n),index_col=0,encoding="cp932")
+        self.labels = self.make_label(tscore=True,pos=False) 
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
         
         self.calc_score_labels(method)
-        self.calc_score_labels_2(self.labels_scored)
+        self.calc_score_labels_2(self.labels_scored,myu=1.0)
         
 
     # ラベル候補を作成(品詞とtスコアによる選定)
@@ -43,7 +43,7 @@ class GrantLabel:
         
         #dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,self.topic_model.W,self.C)
         #pandas.DataFrame(dic_cooccur).to_csv("../data/dic_cooccur_ww.csv")       
-        dic_cooccur = pandas.read_csv("../data/cooccur_ww.csv",index_col=0)
+        dic_cooccur = pandas.read_csv("../data/dic_cooccur_ww.csv",index_col=0)
         new_labels = []
 
         for label in labels:
@@ -88,7 +88,7 @@ class GrantLabel:
                 cooccur_wl = self.dic_cooccur_wl[word][label] # w,lの共起頻度
                 wl_C = cooccur_wl + 1 / (len(self.W_Theta[id_topic].keys()) - self.ngram.n + 1)
                 score += w_theta * numpy.log2(wl_C / (w_C * l_C)) # w_theta * PMI(w,l|C)
-                score -= w_theta * numpy.log2(w_theta / w_C) # KLダイバージェンス(トピック-コーパスC)
+                #score -= w_theta * numpy.log2(w_theta / w_C) # KLダイバージェンス(トピック-コーパスC)
         
         return score
     
@@ -99,7 +99,7 @@ class GrantLabel:
             self.dic_mle_1gram = Ngram(self.C,n=1).mle()
             self.dic_mle_ngram = self.ngram.mle()
             labels = ["-".join(label) for label in self.labels]
-            #self.dic_cooccur_wl= self.ngram.make_dic_cooccur(self.topic_model.W,labels,self.C,search_window=30,complex_term=True)
+            #self.dic_cooccur_wl= self.ngram.make_dic_cooccur(self.topic_model.W,labels,self.C,search_window=10,complex_term=True)
             #pandas.DataFrame(self.dic_cooccur_wl).to_csv("../data/cooccur_wl_{0}gram.csv".format(self.ngram.n))
 
         for id_topic,W_theta in tqdm(self.W_Theta.items()):
@@ -117,12 +117,12 @@ class GrantLabel:
             for label,score in labels_scored[i].items():
                 Ei_pmi = score # 該当トピックへのラベルスコア
                 Ej_pmi = 0
-                for j in labels_scored.keys() - [i]: Ej_pmi += labels_scored[j][label]
-                new_score = (1 + myu / (k - 1)) * Ei_pmi - (myu / (k - 1)) * Ej_pmi
+                for j in labels_scored.keys(): Ej_pmi += labels_scored[j][label]
+                new_score = (1 + (myu / (k - 1))) * Ei_pmi - (myu / (k - 1)) * Ej_pmi
                 temp_labels_scored[label] = new_score
             new_labels_scored[i] = temp_labels_scored
         
-        self.calc_score_labels = new_labels_scored
+        self.labels_scored = new_labels_scored
 
 
     def show_labels(self,id_topic,num_labels=10):

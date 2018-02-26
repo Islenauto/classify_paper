@@ -8,13 +8,16 @@ import re,sys,os
 root_path = os.path.dirname(os.getcwd())
 
 class TopicModel:
-    def __init__(self,tb_articles=None,update=False):
+    def __init__(self,tb_articles,update=False):
         # 既存のdictionary,corpus,modelが無い場合は新規作成
         if update == True:
             self.update_model(tb_articles)
         
         # dictionary,corpus,model読み込み 
+<<<<<<< HEAD
         tb_articles = pd.read_excel(root_path+'/data/articles.xlsx')
+=======
+>>>>>>> 0a1540e4d585b0fef5ba30781fa7baf18a2b9402
         self.sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
         self.sentences_parsed_with_pos = [row['sentence_parsed_with_pos'].split("\t") for index,row in tb_articles.iterrows()]
         
@@ -42,13 +45,12 @@ class TopicModel:
 
     def update_model(self,tb_articles):
         sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
-
         dictionary,corpus = self.create_tfcorpus(sentences_parsed,sentences_parsed)
         tfidf = models.TfidfModel(corpus)
         corpus_tfidf = tfidf[corpus]
         hdp = models.hdpmodel.HdpModel(corpus=corpus_tfidf,id2word=dictionary,T=30)
 
-        tb_articles.to_csv(root_path+"/data/articles.csv")
+        tb_articles.to_excel(root_path+"/data/articles.xlsx")
         dictionary.save(root_path+'/data/articles.dict')
         corpora.MmCorpus.serialize(root_path+'/data/articles.mm',corpus_tfidf)
         hdp.save(root_path+'/data/hdp.model')
