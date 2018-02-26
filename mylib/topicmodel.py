@@ -14,7 +14,7 @@ class TopicModel:
             self.update_model(tb_articles)
         
         # dictionary,corpus,model読み込み 
-        tb_articles = pd.read_csv(root_path+'/data/articles.csv')
+        tb_articles = pd.read_excel(root_path+'/data/articles.xlsx')
         self.sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
         self.sentences_parsed_with_pos = [row['sentence_parsed_with_pos'].split("\t") for index,row in tb_articles.iterrows()]
         
