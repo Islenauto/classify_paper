@@ -13,17 +13,17 @@ from mylib.ngram import Ngram
 class GrantLabel:
     def __init__(self,topicmodel,method):
 
-        self.topic_model = topicmodel
-        self.method = method
+        self.topic_model = topicmodel # トピックモデル
+        self.method = method # ラベルのスコアリング手法
         self.W_Theta = self.topic_model.W_Theta_indoc # トピック毎の単語生起確率リスト
         self.C = self.topic_model.sentences_parsed # 文脈情報に用いるコーパスC
         self.ngram = Ngram(self.C,n=2) # ngramの言語モデルを作成        
-        self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram_30(all).csv".format(self.ngram.n),index_col=0,encoding="cp932")
-        self.labels = self.make_label(tscore=True,pos=False) 
+        #self.dic_cooccur_wl = pandas.read_csv("../data/cooccur_wl_{0}gram_30(all).csv".format(self.ngram.n),index_col=0,encoding="cp932")
+        self.labels = self.make_label(tscore=True,pos=False) # ラベル候補 
         self.labels_scored = {} # スコアリングしたラベルの辞書をトピック毎に格納する辞書(hashkey=トピック番号)
         
-        self.calc_score_labels(method)
-        self.calc_score_labels_2(self.labels_scored,myu=1.0)
+        self.calc_score_labels(method) # ラベルのスコアリング(ラベルとトピックの意味的近さのみ考慮)
+        self.calc_score_labels_2(self.labels_scored,myu=1.0) (他トピックとの差別化を考慮)
         
 
     # ラベル候補を作成(品詞とtスコアによる選定)
@@ -37,8 +37,9 @@ class GrantLabel:
         labels = [(label[0].split("-")[0],label[1].split("-")[0]) for label in labels]
         
         return labels
-        
 
+
+    # t値によるラベル選定(threshold_rank:ラベル候補とする閾値)
     def extract_label_by_tscore(self,labels,threshold_rank=1000):
         
         #dic_cooccur = self.ngram.make_dic_cooccur(self.topic_model.W,self.topic_model.W,self.C)
@@ -56,6 +57,7 @@ class GrantLabel:
         return new_labels[:threshold_rank]
 
 
+    # 品詞によるラベル選定(lis_pos:指定する品詞,mode_invert:Trueでlis_posの品詞以外をラベル候補とする)
     def extract_label_by_pos(self,labels,lis_pos,mode_invert=False):
 
         new_labels = []
@@ -71,6 +73,7 @@ class GrantLabel:
         return new_labels
 
 
+    # calc_score_labelsの補助メソッド
     def calc_score_label(self,label,id_topic,W_theta):
         
         score = 0      
@@ -91,8 +94,9 @@ class GrantLabel:
                 #score -= w_theta * numpy.log2(w_theta / w_C) # KLダイバージェンス(トピック-コーパスC)
         
         return score
-    
-    
+
+
+    # ラベルのスコアリング(ラベル-トピックの意味的近さのみ考慮)
     def calc_score_labels(self,method):
         
         if method == 1:
@@ -107,6 +111,7 @@ class GrantLabel:
             self.labels_scored[id_topic] = labels_scored_theta
 
 
+    # ラベルのスコアリング(他トピックとの差別化のみ考慮)
     def calc_score_labels_2(self,labels_scored,myu=0.7):
         
         k = self.topic_model.K
@@ -125,6 +130,7 @@ class GrantLabel:
         self.labels_scored = new_labels_scored
 
 
+    # トピックに付与されたラベルの表示メソッド(num_labels:表示するラベル数)
     def show_labels(self,id_topic,num_labels=10):
         df = pandas.Series(self.labels_scored[id_topic]).sort_values(ascending=False)
         return (df[:num_labels])
