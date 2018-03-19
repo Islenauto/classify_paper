@@ -16,7 +16,7 @@ def input_opr():
         quit()
     return (argv[1],argv[2])
 
-
+# 指定した記事テーブル-閲覧済み記事テーブルをマージ
 def insert_read_articles(tb_arti_recomm,tb_arti_read):
 
     sent = "\t".join(list(tb_arti_read["sentence_parsed"]))
@@ -37,7 +37,7 @@ def main():
     id_topics = topic_model.id_topics_indoc
     for i in id_topics:
         labels_dic = grant_label.show_labels(id_topic=i,num_labels=1000)
-        pd.DataFrame(labels_dic).to_csv("{0}/result/labels/2gram/first_order_relevance_2/{1}/topic_{2}.csv".format(root_path,category,i))
+        pd.DataFrame(labels_dic).to_csv("{0}/result/labels/topic_{2}.csv".format(root_path,category,i))
 
 
 if __name__=='__main__':
