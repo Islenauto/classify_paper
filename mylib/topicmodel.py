@@ -8,24 +8,20 @@ import re,sys,os
 root_path = os.path.dirname(os.getcwd())
 
 class TopicModel:
-    def __init__(self,tb_articles,update=False):
+    def __init__(self,tb_articles=None,update=False):
         # 既存のdictionary,corpus,modelが無い場合は新規作成
         if update == True:
             self.update_model(tb_articles)
         
         # dictionary,corpus,model読み込み 
-<<<<<<< HEAD
         tb_articles = pd.read_excel(root_path+'/data/articles.xlsx')
-=======
->>>>>>> 0a1540e4d585b0fef5ba30781fa7baf18a2b9402
-        self.sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
-        self.sentences_parsed_with_pos = [row['sentence_parsed_with_pos'].split("\t") for index,row in tb_articles.iterrows()]
-        
+        self.sentences_parsed_with_pos = [row['sentence_parsed_with_pos'].split("\t") for index,row in tb_articles.iterrows()]     
         dictionary = corpora.Dictionary.load(root_path+'/data/articles.dict')
         corpus_tfidf = corpora.MmCorpus(root_path+'/data/articles.mm')
         self.hdp = models.hdpmodel.HdpModel.load(root_path+'/data/hdp.model')
         
-        self.W = [word for word in dictionary.values()]
+        # クラス変数定義
+        self.W = [word for word in dictionary.values()] # モデルの語彙リスト
         self.topics_indoc = [dict(self.hdp[c]) for c in corpus_tfidf] # 各doc内のトピック分布リスト
         self.num_topics_indoc = pd.DataFrame(self.topics_indoc).shape[1] # トピック数 
         self.id_topics_indoc = list(pd.DataFrame(self.topics_indoc).columns) # 文書に割り当てがあるトピックのidリスト
@@ -34,7 +30,7 @@ class TopicModel:
         self.W_Theta = {num:{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp} # トピック毎の各単語の生起確率辞書
         self.W_Theta_indoc = {num:{w_theta[0]:w_theta[1] for w_theta in W_theta} for num,W_theta in temp if num in self.id_topics_indoc} # トピック毎の各単語の生起確率辞書(文書に割り当てがあるもの)
 
-
+    # 語彙のtfコーパス,語彙-idを紐付けた辞書の作成
     def create_tfcorpus(self,texts4dic,texts4corpus):
         # 単一文書の場合は多重リスト化(gensimのDictionaryの仕様上単一リストは受け付けない)
         if isinstance(texts4corpus[0],str): texts4corpus = [texts4corpus]
@@ -42,7 +38,7 @@ class TopicModel:
         corpus_tf = [dic_word2id.doc2bow(text) for text in texts4corpus]
         return (dic_word2id,corpus_tf)
 
-
+    # 指定した記事テーブル(tb_articles)でモデルを再作成
     def update_model(self,tb_articles):
         sentences_parsed = [row['sentence_parsed'].split("\t") for index,row in tb_articles.iterrows()]
         dictionary,corpus = self.create_tfcorpus(sentences_parsed,sentences_parsed)
