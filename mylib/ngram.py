@@ -10,14 +10,14 @@ class Ngram:
     def __init__(self,texts,n=2):
         
         self.n = n # n-gram
-        self.texts_orig = texts
+        self.texts_orig = texts # 処理前の文書
         self.texts_ngram = [list(nltk.ngrams(text,self.n)) for text in texts] #各文書のngramリスト(ex.('apple','tree'))
         self.texts_sub1gram = [list(nltk.ngrams(text,self.n-1)) for text in texts] #各文書のn-1gramリスト
-        self.dic_tf_ngram = self.create_tfdic(self.texts_ngram)
-        self.dic_tf_sub1gram = self.create_tfdic(self.texts_sub1gram)
+        self.dic_tf_ngram = self.create_tfdic(self.texts_ngram) # 各ngramのtf辞書
+        self.dic_tf_sub1gram = self.create_tfdic(self.texts_sub1gram) # n-1gramのtf辞書
         
 
-    # 最尤推定(dist = binominal)
+    # 最尤推定
     def mle(self):
         
         dic_mle = {}
@@ -51,6 +51,7 @@ class Ngram:
         return dic_cooccur
     
 
+    # t値の算出
     def t_score(self,w_target,w_cooccur,dic_cooccur):
         
         frq_cooccur = dic_cooccur[w_target][w_cooccur]  # 共起頻度
@@ -61,8 +62,9 @@ class Ngram:
 
         t = (frq_cooccur - ave_frq_cooccur) / np.sqrt(frq_cooccur) # t値
         return t
+    
 
-
+    # tf辞書作成
     def create_tfdic(self,texts4dic):
         
         texts_ngram_joined = []  #各ngramを単一の文字列としたリスト(ex.['apple-tree','tree-under'],...)
@@ -77,6 +79,7 @@ class Ngram:
         return dic_tf
 
 
+    # tfリスト,id-単語を紐付けた辞書の作成(create_tfの補助メソッド)
     def create_tflis(self,texts4dic,texts4corpus):
         
         if isinstance(texts4corpus[0],str): texts4corpus = [texts4corpus]
