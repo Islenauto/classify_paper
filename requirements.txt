@@ -20,5 +20,5 @@ six==1.10.0
 smart-open==1.5.3
 tqdm==4.19.5
 treetaggerwrapper==2.2.4
-urllib3==1.22
+urllib3==1.26.5
 xlrd==1.1.0
